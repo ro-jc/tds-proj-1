@@ -22,10 +22,13 @@ class GitHubAPI:
             wait_time = int(response.headers.get('X-RateLimit-Reset', 0)) - int(time.time())
             print(f"Rate limit exceeded. Wait for {wait_time} seconds.")
             return {}
-            
+
         if response.status_code != 200:
             print(f"Error: {response.status_code}")
-            print(response.json())
+            try:
+                print(response.json())
+            except:
+                print("Couldn't parse json")
             return {}
         
         time.sleep(0.5)
@@ -103,9 +106,9 @@ def save_data(token: str):
     users_data = []
     repos_data = []
     
-    for user in users:
+    for i,user in enumerate(users):
         username = user["login"]
-        print(f"Processing user: {username}")
+        print(f"Processing user {i+1}: {username}")
         
         # Get detailed user information
         user_details = github.get_user_details(username)
@@ -116,7 +119,7 @@ def save_data(token: str):
                 "company": clean_company_name(user_details["company"]),
                 "location": user_details["location"],
                 "email": user_details["email"],
-                "hireable": str(user_details["hireable"]),
+                "hireable": user_details["hireable"],
                 "bio": user_details["bio"],
                 "public_repos": user_details["public_repos"],
                 "followers": user_details["followers"],
@@ -134,8 +137,8 @@ def save_data(token: str):
                     "stargazers_count": repo["stargazers_count"],
                     "watchers_count": repo["watchers_count"],
                     "language": repo["language"],
-                    "has_projects": str(repo["has_projects"]),
-                    "has_wiki": str(repo["has_wiki"]),
+                    "has_projects": repo["has_projects"],
+                    "has_wiki": repo["has_wiki"],
                     "license_name": repo["license"]["name"] if repo["license"] else ""
                 })
     
