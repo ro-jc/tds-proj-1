@@ -31,12 +31,12 @@ class GitHubAPI:
                 print("Couldn't parse json")
             return {}
         
-        time.sleep(0.5)
+        time.sleep(0.1)
         return response.json()
     
     def get_user_repos(self, username: str) -> List[Dict]:
         repos_url = f"{self.base_url}/users/{username}/repos"
-        params = {"sort": "pushed", "per_page": 500}
+        params = {"sort": "pushed", "per_page": 100}
         
         all_repos = []
         page = 1
@@ -51,10 +51,10 @@ class GitHubAPI:
             all_repos.extend(repos)
             page += 1
             
-            if len(repos) < 500:
+            if len(all_repos) >= 500:
                 break
                 
-        return all_repos
+        return all_repos[:500]
     
     def search_mumbai_users(self, min_followers: int = 50, max_results: int = 1000) -> List[Dict]:
         search_url = f"{self.base_url}/search/users"
@@ -97,7 +97,6 @@ def clean_company_name(company: str) -> str:
 
 def save_data(token: str):
     github = GitHubAPI(token)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     # Get users and their data
     users = github.search_mumbai_users(min_followers=50)
@@ -115,12 +114,12 @@ def save_data(token: str):
         if user_details:
             users_data.append({
                 "login": user_details["login"],
-                "name": user_details["name"],
+                "name": user_details["name"] if user_details["name"] else "",
                 "company": clean_company_name(user_details["company"]),
                 "location": user_details["location"],
-                "email": user_details["email"],
-                "hireable": user_details["hireable"],
-                "bio": user_details["bio"],
+                "email": user_details["email"] if user_details["email"] else "",
+                "hireable": user_details["hireable"] if user_details["hireable"] else "",
+                "bio": user_details["bio"] if user_details["bio"] else "",
                 "public_repos": user_details["public_repos"],
                 "followers": user_details["followers"],
                 "following": user_details["following"],
@@ -136,10 +135,10 @@ def save_data(token: str):
                     "created_at": repo["created_at"],
                     "stargazers_count": repo["stargazers_count"],
                     "watchers_count": repo["watchers_count"],
-                    "language": repo["language"],
+                    "language": repo["language"] if repo["language"] else "",
                     "has_projects": repo["has_projects"],
                     "has_wiki": repo["has_wiki"],
-                    "license_name": repo["license"]["name"] if repo["license"] else ""
+                    "license_name": repo["license"]["key"] if repo["license"] else ""
                 })
     
     # Save users.csv
