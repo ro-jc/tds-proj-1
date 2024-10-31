@@ -67,7 +67,7 @@ class GitHubAPI:
 
         while len(all_users) < max_results:
             params = {
-                "q": f"location:Mumbai followers:>={min_followers}",
+                "q": f"location:Mumbai followers:>{min_followers}",
                 "per_page": per_page,
                 "page": page,
             }
